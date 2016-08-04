@@ -11,28 +11,115 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.3.0.RELEASE</version>
+        <version>1.4.0.RELEASE</version>
         <relativePath/>
     </parent>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 
     <properties>
         <main.basedir>${basedir}/..</main.basedir>
         <spring-boot-ratpack.version>1.0.0.BUILD-SNAPSHOT</spring-boot-ratpack.version>
         <ratpack.version>1.1.1</ratpack.version>
+
+        <docker.image.name>aiur/ratpack-k8s</docker.image.name>
+
+        <!-- DOCKER SETTINGS -->
+        <docker.image.name>ratpack-k8s</docker.image.name>
+
+        <docker.image.prefix>aiur</docker.image.prefix>
+        <docker.image.base>lemniscate/java-8-enhanced</docker.image.base>
+
+        <!-- If these variables are red in IntellIJ, add dummy values to Settings > Maven > Runner > Properties  -->
+        <docker.image.tag>1</docker.image.tag>
     </properties>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-client</artifactId>
+            <version>1.4.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.ratpack</groupId>
+            <artifactId>ratpack-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-actuator</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-logging</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>io.ratpack</groupId>
+            <artifactId>ratpack-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.ratpack</groupId>
+            <artifactId>ratpack-spring-boot</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+    </dependencies>
+
+
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -95,78 +182,56 @@
                 <artifactId>ratpack-thymeleaf</artifactId>
                 <version>${ratpack.version}</version>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 
-    <dependencies>
-        <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>kubernetes-client</artifactId>
-            <version>1.4.0</version>
-        </dependency>
 
-        <dependency>
-            <groupId>io.ratpack</groupId>
-            <artifactId>ratpack-spring-boot-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.ratpack</groupId>
-            <artifactId>ratpack-core</artifactId>
-        </dependency>
 
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-validator</artifactId>
-        </dependency>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.4.9</version>
+                <configuration>
+                    <imageName>${docker.image.name}</imageName>
+                    <baseImage>${docker.image.base}</baseImage>
+                    <entryPoint>["java", "-jar", "/${project.build.finalName}.jar"]</entryPoint>
+                    <exposes>
+                        <expose>5050</expose>
+                    </exposes>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-actuator</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-logging</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-validator</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>io.ratpack</groupId>
-            <artifactId>ratpack-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.ratpack</groupId>
-            <artifactId>ratpack-spring-boot</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
+                    <!-- copy the service's jar file from target into the root directory of the image -->
+                    <resources>
+                        <resource>
+                            <targetPath>/</targetPath>
+                            <directory>${project.build.directory}</directory>
+                            <include>${project.build.finalName}.jar</include>
+                        </resource>
+                    </resources>
+                    <runs>
+                        <run>touch /${project.build.finalName}.jar</run>
+                    </runs>
+                    <forceTags>true</forceTags>
+                    <imageTags>
+                        <imageTag>${docker.image.tag}</imageTag>
+                    </imageTags>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
